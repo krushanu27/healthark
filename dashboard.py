@@ -1,52 +1,4 @@
 # ==============================================================================
-# SCRIPT FOR: FINAL HACKATHON DASHBOARD (CHAMPION XGBOOST MODEL)
-# ==============================================================================
-
-# PART 0: SETUP
-# ==============================================================================
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-from sklearn.model_selection import train_test_split
-from xgboost import XGBClassifier
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
-import seaborn as sns
-import joblib
-
-# ==============================================================================
-# PART 1: PAGE CONFIGURATION AND STYLING
-# ==============================================================================
-# Use st.set_page_config() as the first Streamlit command
-st.set_page_config(
-    page_title="Readmission Risk Dashboard",
-    page_icon="🏥",
-    layout="wide" # Use the full page width for a modern look
-)
-
-# You can inject custom CSS for styling if you want
-st.markdown("""
-<style>
-    .block-container {
-        padding-top: 2rem;
-    }
-    .stMetric {
-        border: 1px solid #2e2e2e;
-        border-radius: 10px;
-        padding: 15px;
-        background-color: #0d1117;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-
-# ==============================================================================
-# PART 2: DATA LOADING AND PROCESSING (Cached for performance)
-# ==============================================================================
-# ==============================================================================
-# SCRIPT FOR: FINAL HACKATHON DASHBOARD (CHAMPION XGBOOST MODEL)
-# ==============================================================================
-
 # PART 0: SETUP
 # ==============================================================================
 import streamlit as st
@@ -107,6 +59,26 @@ def load_and_process_data():
         'ICD9_PRCDR_CD_1': str, 'ICD9_PRCDR_CD_2': str, 'ICD9_PRCDR_CD_3': str,
         'ICD9_PRCDR_CD_4': str, 'ICD9_PRCDR_CD_5': str, 'ICD9_PRCDR_CD_6': str
     }
+    
+    outpatient_columns = [
+        'DESYNPUF_ID', 'CLM_ID', 'SEGMENT', 'CLM_FROM_DT', 'CLM_THRU_DT', 
+        'PRVDR_NUM', 'CLM_PMT_AMT', 'NCH_PRMRY_PYR_CLM_PD_AMT', 'AT_PHYSN_NPI', 
+        'OP_PHYSN_NPI', 'OT_PHYSN_NPI', 'NCH_BENE_BLOOD_DDCTBL_LBLTY_AM', 
+        'ICD9_DGNS_CD_1', 'ICD9_DGNS_CD_2', 'ICD9_DGNS_CD_3', 'ICD9_DGNS_CD_4', 
+        'ICD9_DGNS_CD_5', 'ICD9_DGNS_CD_6', 'ICD9_DGNS_CD_7', 'ICD9_DGNS_CD_8', 
+        'ICD9_DGNS_CD_9', 'ICD9_DGNS_CD_10', 'ICD9_PRCDR_CD_1', 'ICD9_PRCDR_CD_2', 
+        'ICD9_PRCDR_CD_3', 'ICD9_PRCDR_CD_4', 'ICD9_PRCDR_CD_5', 'ICD9_PRCDR_CD_6', 
+        'NCH_BENE_PTB_DDCTBL_AMT', 'NCH_BENE_PTB_COINSRNC_AMT', 'ADMTNG_ICD9_DGNS_CD', 
+        'HCPCS_CD_1', 'HCPCS_CD_2', 'HCPCS_CD_3', 'HCPCS_CD_4', 'HCPCS_CD_5', 
+        'HCPCS_CD_6', 'HCPCS_CD_7', 'HCPCS_CD_8', 'HCPCS_CD_9', 'HCPCS_CD_10', 
+        'HCPCS_CD_11', 'HCPCS_CD_12', 'HCPCS_CD_13', 'HCPCS_CD_14', 'HCPCS_CD_15', 
+        'HCPCS_CD_16', 'HCPCS_CD_17', 'HCPCS_CD_18', 'HCPCS_CD_19', 'HCPCS_CD_20', 
+        'HCPCS_CD_21', 'HCPCS_CD_22', 'HCPCS_CD_23', 'HCPCS_CD_24', 'HCPCS_CD_25', 
+        'HCPCS_CD_26', 'HCPCS_CD_27', 'HCPCS_CD_28', 'HCPCS_CD_29', 'HCPCS_CD_30', 
+        'HCPCS_CD_31', 'HCPCS_CD_32', 'HCPCS_CD_33', 'HCPCS_CD_34', 'HCPCS_CD_35', 
+        'HCPCS_CD_36', 'HCPCS_CD_37', 'HCPCS_CD_38', 'HCPCS_CD_39', 'HCPCS_CD_40', 
+        'HCPCS_CD_41', 'HCPCS_CD_42', 'HCPCS_CD_43', 'HCPCS_CD_44', 'HCPCS_CD_45'
+    ]
     
     try:
         beneficiary_2008 = pd.read_csv(file_urls["beneficiary_2008"])
