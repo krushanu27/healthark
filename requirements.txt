@@ -1,0 +1,9 @@
+pandas
+openpyxl
+xgboost
+scikit-learn
+seaborn
+matplotlib
+streamlit
+tensorflow
+keras-tuner
