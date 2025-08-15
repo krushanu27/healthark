@@ -23,7 +23,7 @@ This project is a submission for the RWEsearch Hackathon by Healthark. It levera
 
 **1. Clone the repository:**
 ```bash
-git clone [<your-repo-url>](https://github.com/krushanu27/healthark.git)
+git clone https://github.com/krushanu27/healthark.git
 cd healthark
 ```
 
