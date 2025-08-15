@@ -205,12 +205,6 @@ def load_and_process_data():
     
     return master_df_final
 
-# ==============================================================================
-# PART 3: MODEL TRAINING (Cached for performance)
-# ==============================================================================
-@st.cache_resource
-def train_model(df):
-    # ... (The rest of your script remains exactly the same) ...
 
 # ==============================================================================
 # PART 3: MODEL TRAINING (Cached for performance)
