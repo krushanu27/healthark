@@ -1,4 +1,7 @@
 # ==============================================================================
+# SCRIPT FOR: FINAL HACKATHON DASHBOARD (CHAMPION XGBOOST MODEL)
+# ==============================================================================
+
 # PART 0: SETUP
 # ==============================================================================
 import streamlit as st
@@ -14,12 +17,14 @@ import joblib
 # ==============================================================================
 # PART 1: PAGE CONFIGURATION AND STYLING
 # ==============================================================================
+# Use st.set_page_config() as the first Streamlit command
 st.set_page_config(
     page_title="Readmission Risk Dashboard",
     page_icon="🏥",
-    layout="wide"
+    layout="wide" # Use the full page width for a modern look
 )
 
+# You can inject custom CSS for styling if you want
 st.markdown("""
 <style>
     .block-container {
@@ -36,21 +41,12 @@ st.markdown("""
 
 
 # ==============================================================================
-# PART 2: DATA LOADING AND PROCESSING (FROM CLOUD URLS)
+# PART 2: DATA LOADING AND PROCESSING (Cached for performance)
 # ==============================================================================
 @st.cache_data
 def load_and_process_data():
     print("--- Loading and Preprocessing Initial Data (cached) ---")
     
-    file_urls = {
-        "beneficiary_2008": "https://drive.google.com/uc?export=download&id=1gfVPAI3z625EJI6_sVPwqOdinLIlu-0f",
-        "beneficiary_2009": "https://drive.google.com/uc?export=download&id=1rc4hJI0k6oquH8Rco_tinqIwlR4M_laz",
-        "beneficiary_2010": "https://drive.google.com/uc?export=download&id=1BNbXSkG-qCKsaf2LoQwA9XXz4iCx_gqW",
-        "inpatient_claims": "https://drive.google.com/uc?export=download&id=1ozXxS06fg1QwNIGxsYIdrK0V6rAuqLWR",
-        "outpatient_claims": "https://drive.google.com/uc?export=download&id=1k4KDKGA_GjLyVo8QL1rzuHO_PlGcajcH",
-        "drug_exposure": "https://drive.google.com/uc?export=download&id=1wwDVe_HiCP1cKvwjVt3Fgrv2bmIzmWUt",
-        "person_mapping": "https://drive.google.com/uc?export=download&id=1Psn9gI7wcObueXGKmRnY1xrmKYCpQOk3"
-    }
     code_columns = {
         'ICD9_DGNS_CD_1': str, 'ICD9_DGNS_CD_2': str, 'ICD9_DGNS_CD_3': str,
         'ICD9_DGNS_CD_4': str, 'ICD9_DGNS_CD_5': str, 'ICD9_DGNS_CD_6': str,
@@ -60,53 +56,14 @@ def load_and_process_data():
         'ICD9_PRCDR_CD_4': str, 'ICD9_PRCDR_CD_5': str, 'ICD9_PRCDR_CD_6': str
     }
     
-    outpatient_columns = [
-        'DESYNPUF_ID', 'CLM_ID', 'SEGMENT', 'CLM_FROM_DT', 'CLM_THRU_DT', 
-        'PRVDR_NUM', 'CLM_PMT_AMT', 'NCH_PRMRY_PYR_CLM_PD_AMT', 'AT_PHYSN_NPI', 
-        'OP_PHYSN_NPI', 'OT_PHYSN_NPI', 'NCH_BENE_BLOOD_DDCTBL_LBLTY_AM', 
-        'ICD9_DGNS_CD_1', 'ICD9_DGNS_CD_2', 'ICD9_DGNS_CD_3', 'ICD9_DGNS_CD_4', 
-        'ICD9_DGNS_CD_5', 'ICD9_DGNS_CD_6', 'ICD9_DGNS_CD_7', 'ICD9_DGNS_CD_8', 
-        'ICD9_DGNS_CD_9', 'ICD9_DGNS_CD_10', 'ICD9_PRCDR_CD_1', 'ICD9_PRCDR_CD_2', 
-        'ICD9_PRCDR_CD_3', 'ICD9_PRCDR_CD_4', 'ICD9_PRCDR_CD_5', 'ICD9_PRCDR_CD_6', 
-        'NCH_BENE_PTB_DDCTBL_AMT', 'NCH_BENE_PTB_COINSRNC_AMT', 'ADMTNG_ICD9_DGNS_CD', 
-        'HCPCS_CD_1', 'HCPCS_CD_2', 'HCPCS_CD_3', 'HCPCS_CD_4', 'HCPCS_CD_5', 
-        'HCPCS_CD_6', 'HCPCS_CD_7', 'HCPCS_CD_8', 'HCPCS_CD_9', 'HCPCS_CD_10', 
-        'HCPCS_CD_11', 'HCPCS_CD_12', 'HCPCS_CD_13', 'HCPCS_CD_14', 'HCPCS_CD_15', 
-        'HCPCS_CD_16', 'HCPCS_CD_17', 'HCPCS_CD_18', 'HCPCS_CD_19', 'HCPCS_CD_20', 
-        'HCPCS_CD_21', 'HCPCS_CD_22', 'HCPCS_CD_23', 'HCPCS_CD_24', 'HCPCS_CD_25', 
-        'HCPCS_CD_26', 'HCPCS_CD_27', 'HCPCS_CD_28', 'HCPCS_CD_29', 'HCPCS_CD_30', 
-        'HCPCS_CD_31', 'HCPCS_CD_32', 'HCPCS_CD_33', 'HCPCS_CD_34', 'HCPCS_CD_35', 
-        'HCPCS_CD_36', 'HCPCS_CD_37', 'HCPCS_CD_38', 'HCPCS_CD_39', 'HCPCS_CD_40', 
-        'HCPCS_CD_41', 'HCPCS_CD_42', 'HCPCS_CD_43', 'HCPCS_CD_44', 'HCPCS_CD_45'
-    ]
+    beneficiary_2008 = pd.read_csv("D:/Jupyter/HealthArk_data/DE1_0_2008_Beneficiary_Summary_File_Sample_1.csv")
+    beneficiary_2009 = pd.read_csv("D:/Jupyter/HealthArk_data/DE1_0_2009_Beneficiary_Summary_File_Sample_1.csv")
+    beneficiary_2010 = pd.read_csv("D:/Jupyter/HealthArk_data/DE1_0_2010_Beneficiary_Summary_File_Sample_1.csv")
     
-    try:
-        beneficiary_2008 = pd.read_csv(file_urls["beneficiary_2008"])
-        beneficiary_2009 = pd.read_csv(file_urls["beneficiary_2009"])
-        beneficiary_2010 = pd.read_csv(file_urls["beneficiary_2010"])
-        
-        inpatient_iterator = pd.read_csv(file_urls["inpatient_claims"], dtype=code_columns, chunksize=100000)
-        outpatient_iterator = pd.read_csv(
-            file_urls["outpatient_claims"], 
-            engine='python', 
-            chunksize=100000,
-            header=None,         # Explicitly tell pandas there is no header to read
-            skiprows=1,          # Skip the first row of the file (the actual header)
-            names=outpatient_columns # Assign our clean list of names
-        )
-        outpatient_iterator = pd.read_csv(file_urls["outpatient_claims"], dtype=code_columns, engine='python', chunksize=100000)
-        
-        drug_exposure = pd.read_excel(file_urls["drug_exposure"])
-        person_mapping = pd.read_excel(file_urls["person_mapping"])
-
-    except Exception as e:
-        st.error(f"Error loading data from URL. Please check your links and sharing permissions. Error: {e}")
-        return None
+    chunk_size = 100000
     
-    # --- START OF FIX ---
-    # The original script re-defined the iterators here with local paths.
-    # We have REMOVED those lines. The iterators defined above from the URLs will now be used correctly.
     inpatient_agg_list, inpatient_codes_list, inpatient_readmission_list = [], [], []
+    inpatient_iterator = pd.read_csv("D:/Jupyter/HealthArk_data/DE1_0_2008_to_2010_Inpatient_Claims_Sample_1.csv", dtype=code_columns, chunksize=chunk_size)
     for chunk in inpatient_iterator:
         inpatient_agg_list.append(chunk.groupby('DESYNPUF_ID').agg(Inpatient_Claim_Count=('CLM_ID', 'count'), Total_Inpatient_Payments=('CLM_PMT_AMT', 'sum')))
         inpatient_codes_list.append(chunk[['DESYNPUF_ID', 'ICD9_DGNS_CD_1']])
@@ -119,13 +76,13 @@ def load_and_process_data():
     inpatient_claims_raw = pd.concat(inpatient_readmission_list)
     
     outpatient_agg_list, outpatient_codes_list = [], []
+    outpatient_iterator = pd.read_csv("D:/Jupyter/HealthArk_data/DE1_0_2008_to_2010_Outpatient_Claims_Sample_1.csv", dtype=code_columns, engine='python', chunksize=chunk_size)
     for chunk in outpatient_iterator:
         outpatient_agg_list.append(chunk.groupby('DESYNPUF_ID').agg(Outpatient_Claim_Count=('CLM_ID', 'count'), Total_Outpatient_Payments=('CLM_PMT_AMT', 'sum')))
         outpatient_codes_list.append(chunk[['DESYNPUF_ID', 'ICD9_DGNS_CD_1']])
         
     outpatient_agg = pd.concat(outpatient_agg_list).groupby(level=0).sum()
     outpatient_codes = pd.concat(outpatient_codes_list)
-    # --- END OF FIX ---
 
     all_beneficiaries = pd.concat([beneficiary_2008, beneficiary_2009, beneficiary_2010], ignore_index=True)
     all_beneficiaries = all_beneficiaries.drop_duplicates(subset=['DESYNPUF_ID'], keep='last')
@@ -163,28 +120,27 @@ def load_and_process_data():
     categorical_cols = ['BENE_SEX_IDENT_CD', 'BENE_RACE_CD']
     master_df_enhanced = pd.get_dummies(master_df_enhanced, columns=categorical_cols, drop_first=True)
     
-    # --- START OF FIX for Drug Feature Engineering ---
-    # The original script was trying to load local excel files here.
-    # It now uses the dataframes we already loaded from the URLs.
-    person_id_map = person_mapping[['PERSON_ID', 'PERSON_SOURCE_VALUE']].rename(columns={'PERSON_SOURCE_VALUE': 'DESYNPUF_ID'})
-    drug_exposure = drug_exposure.merge(person_id_map, on='PERSON_ID', how='left')
-    
-    if 'DESYNPUF_ID' in drug_exposure.columns:
-        drug_counts = drug_exposure.groupby('DESYNPUF_ID').size().reset_index(name='Total_Drug_Count')
-        unique_drug_counts = drug_exposure.groupby('DESYNPUF_ID')['DRUG_CONCEPT_ID'].nunique().reset_index(name='Unique_Drug_Count')
-        avg_days_supply = drug_exposure.groupby('DESYNPUF_ID')['DAYS_SUPPLY'].mean().reset_index(name='Avg_Days_Supply')
-        master_df_final = master_df_enhanced.merge(drug_counts, on='DESYNPUF_ID', how='left')
-        master_df_final = master_df_final.merge(unique_drug_counts, on='DESYNPUF_ID', how='left')
-        master_df_final = master_df_final.merge(avg_days_supply, on='DESYNPUF_ID', how='left')
-        drug_feature_cols = ['Total_Drug_Count', 'Unique_Drug_Count', 'Avg_Days_Supply']
-        master_df_final[drug_feature_cols] = master_df_final[drug_feature_cols].fillna(0)
-    else:
+    try:
+        drug_exposure = pd.read_excel("D:/Jupyter/HealthArk_data/drug_exposure.xlsx")
+        person_mapping = pd.read_excel("D:/Jupyter/HealthArk_data/person.xlsx")
+        person_id_map = person_mapping[['PERSON_ID', 'PERSON_SOURCE_VALUE']].rename(columns={'PERSON_SOURCE_VALUE': 'DESYNPUF_ID'})
+        drug_exposure = drug_exposure.merge(person_id_map, on='PERSON_ID', how='left')
+        
+        if 'DESYNPUF_ID' in drug_exposure.columns:
+            drug_counts = drug_exposure.groupby('DESYNPUF_ID').size().reset_index(name='Total_Drug_Count')
+            unique_drug_counts = drug_exposure.groupby('DESYNPUF_ID')['DRUG_CONCEPT_ID'].nunique().reset_index(name='Unique_Drug_Count')
+            avg_days_supply = drug_exposure.groupby('DESYNPUF_ID')['DAYS_SUPPLY'].mean().reset_index(name='Avg_Days_Supply')
+            master_df_final = master_df_enhanced.merge(drug_counts, on='DESYNPUF_ID', how='left')
+            master_df_final = master_df_final.merge(unique_drug_counts, on='DESYNPUF_ID', how='left')
+            master_df_final = master_df_final.merge(avg_days_supply, on='DESYNPUF_ID', how='left')
+            drug_feature_cols = ['Total_Drug_Count', 'Unique_Drug_Count', 'Avg_Days_Supply']
+            master_df_final[drug_feature_cols] = master_df_final[drug_feature_cols].fillna(0)
+    except FileNotFoundError:
+        print("Drug or Person files not found. Skipping drug features.")
         master_df_final = master_df_enhanced.copy()
         master_df_final[['Total_Drug_Count', 'Unique_Drug_Count', 'Avg_Days_Supply']] = 0
-    # --- END OF FIX ---
     
     return master_df_final
-
 
 # ==============================================================================
 # PART 3: MODEL TRAINING (Cached for performance)
