@@ -86,6 +86,14 @@ def load_and_process_data():
         beneficiary_2010 = pd.read_csv(file_urls["beneficiary_2010"])
         
         inpatient_iterator = pd.read_csv(file_urls["inpatient_claims"], dtype=code_columns, chunksize=100000)
+        outpatient_iterator = pd.read_csv(
+            file_urls["outpatient_claims"], 
+            engine='python', 
+            chunksize=100000,
+            header=None,         # Explicitly tell pandas there is no header to read
+            skiprows=1,          # Skip the first row of the file (the actual header)
+            names=outpatient_columns # Assign our clean list of names
+        )
         outpatient_iterator = pd.read_csv(file_urls["outpatient_claims"], dtype=code_columns, engine='python', chunksize=100000)
         
         drug_exposure = pd.read_excel(file_urls["drug_exposure"])
